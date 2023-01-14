@@ -1,7 +1,6 @@
-package cloudpocket
+package cloud_pockets
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -10,15 +9,15 @@ import (
 type CloudPocket struct {
 	PocketID   int     `json:"pocketID"`
 	PocketName string  `json:"pocketName"`
+	Category   string  `json:"category"`
+	Currency   string  `json:"currency"`
 	Balance    float64 `json:"balance"`
-	AccountID  int     `json:"accountID"`
+	// AccountID  int     `json:"accountID"`
 }
 
-var db *sql.DB
-
-func getAllCloudPocket(c echo.Context) error {
+func (h handler) GetAllCloudPocket(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-	stmt, err := db.Prepare("SELECT pocket_id, pocket_name, balance, account_id FROM cloud_pocket")
+	stmt, err := h.db.Prepare("SELECT id, name, category, currency, balance FROM cloud_pockets")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"message": "Prepare statement is error",
@@ -33,7 +32,7 @@ func getAllCloudPocket(c echo.Context) error {
 
 	for rows.Next() {
 		cp := CloudPocket{}
-		err = rows.Scan(&cp.PocketID, &cp.PocketName, &cp.Balance, &cp.AccountID)
+		err = rows.Scan(&cp.PocketID, &cp.PocketName, &cp.Category, &cp.Currency, &cp.Balance)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, "Scan is error")
 		}
