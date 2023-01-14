@@ -46,7 +46,7 @@ const (
 func (c *cfg) All() Config {
 	return Config{
 		Server: Server{
-			Hostname: c.envString(cHostname, "localhost"),
+			Hostname: c.envString(cHostname, ""),
 			Port:     c.envInt(cPort, dPort),
 		},
 		FeatureFlag: FeatureFlag{
