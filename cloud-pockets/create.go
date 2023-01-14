@@ -7,7 +7,7 @@ import (
 )
 
 func (h handler) CreateCloudPocket(c echo.Context) error {
-	cloudPocket := new(CreatePocket)
+	cloudPocket := new(CloudPocket)
 	tableName := "cloud_pockets"
 	if err := c.Bind(cloudPocket); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
@@ -21,7 +21,7 @@ func (h handler) CreateCloudPocket(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusCreated, CreatePocket{
+	return c.JSON(http.StatusCreated, CloudPocket{
 		ID:       cloudPocket.ID,
 		Name:     cloudPocket.Name,
 		Category: cloudPocket.Category,
