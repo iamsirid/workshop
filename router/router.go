@@ -43,5 +43,9 @@ func RegRoute(cfg config.Config, logger *zap.Logger, db *sql.DB) *echo.Echo {
 	hCloudPocket := cloud_pockets.New(db)
 	e.POST("/cloud-pockets", hCloudPocket.CreateCloudPocket)
 
+	e.GET("/cloud-pockets", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, "cloud-pocket")
+	})
+
 	return e
 }
