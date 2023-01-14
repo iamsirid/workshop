@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kkgo-software-engineering/workshop/account"
+	cloud_pockets "github.com/kkgo-software-engineering/workshop/cloud-pockets"
 	"github.com/kkgo-software-engineering/workshop/config"
 	"github.com/kkgo-software-engineering/workshop/featflag"
 	"github.com/kkgo-software-engineering/workshop/healthchk"
@@ -36,6 +37,9 @@ func RegRoute(cfg config.Config, logger *zap.Logger, db *sql.DB) *echo.Echo {
 	e.GET("/cloud-pockets", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "cloud-pocket")
 	})
+
+	hCloudPocket := cloud_pockets.New(db)
+	e.POST("/cloud-pockets", hCloudPocket.CreateCloudPocket)
 
 	return e
 }
