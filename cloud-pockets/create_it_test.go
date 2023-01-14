@@ -1,20 +1,22 @@
-//go:build unit
+//go:build integration
 
 package cloud_pockets
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/kkgo-software-engineering/workshop/config"
 	"github.com/labstack/echo/v4"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreatePocket(t *testing.T) {
+func TestCreatePocketIT(t *testing.T) {
 	body := `{"name":"test-pocket", "currency":"THB", "balance":100.00}`
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/cloud-pockets", strings.NewReader(body))
@@ -23,14 +25,12 @@ func TestCreatePocket(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	db, mock, err := sqlmock.New()
+	cfg := config.New().All()
+	sql, err := sql.Open("postgres", cfg.DBConnection)
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		t.Error(err)
 	}
-	defer db.Close()
-	mock.ExpectQuery("INSERT INTO cloud_pockets").
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-	hCloudPocket := New(db)
+	hCloudPocket := New(sql)
 
 	if assert.NoError(t, hCloudPocket.CreateCloudPocket(c)) {
 		assert.Equal(t, http.StatusCreated, rec.Code)
@@ -39,5 +39,6 @@ func TestCreatePocket(t *testing.T) {
 		assert.Equal(t, "test-pocket", response["name"])
 		assert.Equal(t, "THB", response["currency"])
 		assert.Equal(t, 100.0, response["balance"])
+		assert.NotEmpty(t, response["id"])
 	}
 }
