@@ -1,17 +1,32 @@
-//package cloud_pockets
-//
-//import "github.com/labstack/echo/v4"
-//
-//type CreatePocket struct {
-//	ID       int     `json:"id"`
-//	name     string  `json:"name"`
-//	category string  `json:"category"`
-//	currency string  `json:"currency"`
-//	balance  float64 `json:"balance"`
-//}
-//
-//func CreateCloudPocket(c echo.Context) error {
-//
-//	//cp := CreatePocket{}
-//
-//}
+package cloud_pockets
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+func (h handler) CreateCloudPocket(c echo.Context) error {
+	cloudPocket := new(CreatePocket)
+	tableName := "cloud_pockets"
+	if err := c.Bind(cloudPocket); err != nil {
+		return c.String(http.StatusBadRequest, "bad request")
+	}
+
+	row := h.db.QueryRow(
+		`INSERT INTO `+tableName+` (name, category, currency, balance) VALUES ($1, $2, $3, $4) RETURNING id`,
+		cloudPocket.Name, cloudPocket.Category, cloudPocket.Currency, cloudPocket.Balance,
+	)
+	err := row.Scan(&cloudPocket.ID)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusCreated, CreatePocket{
+		ID:       cloudPocket.ID,
+		Name:     cloudPocket.Name,
+		Category: cloudPocket.Category,
+		Currency: cloudPocket.Currency,
+		Balance:  cloudPocket.Balance,
+	})
+
+}
