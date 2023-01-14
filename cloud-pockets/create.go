@@ -10,7 +10,7 @@ func (h handler) CreateCloudPocket(c echo.Context) error {
 	cloudPocket := new(CreatePocket)
 	tableName := "cloud_pockets"
 	if err := c.Bind(cloudPocket); err != nil {
-		return c.String(http.StatusBadRequest, "bad request")
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
 	row := h.db.QueryRow(
@@ -28,5 +28,4 @@ func (h handler) CreateCloudPocket(c echo.Context) error {
 		Currency: cloudPocket.Currency,
 		Balance:  cloudPocket.Balance,
 	})
-
 }
