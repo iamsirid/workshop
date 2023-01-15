@@ -38,8 +38,7 @@ func TestTransactionbyAccountID(t *testing.T) {
 	// err = h.GetTransactionbyAccountid(c)
 	// //Arrange
 
-		assert.Equal(t, 200,200)
-		assert.Equal(t, 1,1)
-
+	assert.Equal(t, 200, 200)
+	assert.Equal(t, 1, 1)
 
 }
