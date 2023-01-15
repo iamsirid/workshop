@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/kkgo-software-engineering/workshop/config"
 	"github.com/kkgo-software-engineering/workshop/mlog"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -19,7 +17,6 @@ type Transaction struct {
 	Amount                      float64   `json:"amount"`
 	Description                 string    `json:"description"`
 	Date                        time.Time `json:"date"`
-	Status                      string    `json:"status"`
 }
 
 type CloudPocket struct {
@@ -30,22 +27,20 @@ type CloudPocket struct {
 	Balance  float64 `json:"balance"`
 }
 
+
 type handler struct {
-	cfg config.FeatureFlag
 	db  *sql.DB
 }
 
-func New(cfgFlag config.FeatureFlag, db *sql.DB) *handler {
-	return &handler{cfgFlag, db}
-}
 
+func New(db *sql.DB) *handler {
+	return &handler{db}
+}
 const (
-	cStmt = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime,status FROM transaction WHERE id=$1;"
-	// ,
-	// CreateQuery="INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description, status) VALUES($1,$2, $3,$4,$5,$6);
-	// ",
-	// FindPocketQuery="SELECT id, \"name\", category, currency, balance
-	// FROM public.cloud_pockets where id=$1;"
+	cStmt             = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime FROM transaction WHERE id=$1;"
+	CreateQuery       = "INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description) VALUES($1,$2, $3,$4,$5);"
+	FindPocketQuery   = "SELECT id, \"name\", category, currency, balance FROM public.cloud_pockets where id=$1;"
+	UpdatePocketQuery = "UPDATE public.cloud_pockets	SET balance=$2 WHERE id=$1 RETURNING id;"
 )
 
 func (h handler) GetTransactionbyAccountid(c echo.Context) error {
@@ -64,7 +59,7 @@ func (h handler) GetTransactionbyAccountid(c echo.Context) error {
 	}
 	for rows.Next() {
 		t := Transaction{}
-		err = rows.Scan(&t.ID, &t.Soucre_Cloud_Pocket_ID, &t.Destination_Cloud_Pocket_ID, &t.Amount, &t.Description, &t.Date, &t.Status)
+		err = rows.Scan(&t.ID, &t.Soucre_Cloud_Pocket_ID, &t.Destination_Cloud_Pocket_ID, &t.Amount, &t.Description, &t.Date)
 		if err != nil {
 			logger.Error("row scan error", zap.Error(err))
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -84,59 +79,59 @@ func (h handler) GetTransactionbyAccountid(c echo.Context) error {
 // 		logger.Error("bad request body", zap.Error(err))
 // 		return echo.NewHTTPError(http.StatusBadRequest, "bad request body", err.Error())
 // 	}
-// 	SoucrePocket,err:=FindidCloudPocket(h,tn.Soucre_Cloud_Pocket_ID)
-//     if err !=nil{
+// 	SoucrePocket, err := FindidCloudPocket(h, tn.Soucre_Cloud_Pocket_ID)
+// 	if err != nil {
 // 		logger.Error("SoucrePocket not Found", zap.Error(err))
-// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
+// 		return echo.NewHTTPError(http.StatusBadRequest, "SoucrePocket not Found", err.Error())
 // 	}
-// 	DestinationPocket:=FindidCloudPocket(h,tn.Destination_Cloud_Pocket_ID)
-// 	if err !=nil{
+// 	DestinationPocket, err := FindidCloudPocket(h, tn.Destination_Cloud_Pocket_ID)
+// 	if err != nil {
 // 		logger.Error("DestinationPocket not Found", zap.Error(err))
-// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
+// 		return echo.NewHTTPError(http.StatusBadRequest, "SoucrePocket not Found", err.Error())
 // 	}
-// 	if SoucrePocket.balance<tn.amount{
+// 	if SoucrePocket.Balance < tn.Amount {
 // 		logger.Error("SoucrePocket balance  not Enough", zap.Error(err))
-// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket balance  not Enough", err.Error())
+// 		return echo.NewHTTPError(http.StatusBadRequest, "SoucrePocket balance  not Enough", err.Error())
 // 	}
 
 // 	var lastInsertId int64
-// 	err = h.db.QueryRowContext(ctx, cStmt, ac.Balance).Scan(&lastInsertId)
+// 	tn.Date = time.Now()
+// 	err = h.db.QueryRowContext(ctx, cStmt, tn.Soucre_Cloud_Pocket_ID, tn.Destination_Cloud_Pocket_ID, tn.Amount, tn.Date, tn.Description).Scan(&lastInsertId)
 // 	if err != nil {
 // 		logger.Error("query row error", zap.Error(err))
 // 		return err
 // 	}
 
 // 	logger.Info("create successfully", zap.Int64("id", lastInsertId))
-// 	ac.ID = lastInsertId
-// 	return c.JSON(http.StatusCreated, ac)
+// 	tn.ID = lastInsertId
+// 	return c.JSON(http.StatusCreated, tn)
 // }
-// func FindidCloudPocket(h handler,int64 id) (CloudPocket,error){
-// 	var lastInsertId int64
-// 	cp:=CloudPocket{}
-// 	row,err = h.db.Query(FindPocketQuery,id)
-// 	if err != nil {
-// 		logger.Error("query row error", zap.Error(err))
-// 		return  nil,err
+// func FindidCloudPocket(h handler, ID int64) (CloudPocket, error) {
+// 	cp := CloudPocket{}
+// 	row, err := h.db.Query(FindPocketQuery, ID)
+// 	if err != nil {		
+// 		return cp, err
 // 	}
-// 	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
+// 	err = row.Scan(&cp.ID, &cp.Name, &cp.Category, &cp.Currency, &cp.Balance)
 // 	if err != nil {
-// 		logger.Error("row scan error", zap.Error(err))
-// 		return nil,err
+// 		return cp, err
 // 	}
-// 	return cp,nil
+// 	return cp, nil
 // }
-// func UpdateCloudPocket(h handler,int64 id) (CloudPocket,error){
-// 	var lastInsertId int64
-// 	cp:=CloudPocket{}
-// 	row,err = h.db.Query(FindPocketQuery,id)
+// func UpdateCloudPocket(h handler,Soucre CloudPocket,Des CloudPocket,balance float64) (CloudPocket, error) {
+// 	cp := CloudPocket{}
+// 	NewSocureBlance := Soucre.Balance - balance
+// 	NewDesBlance := Des.Balance - balance
+// 	row, err := h.db.QueryRow(UpdatePocketQuery, id, NewSocurBlance)
 // 	if err != nil {
-// 		logger.Error("query row error", zap.Error(err))
-// 		return  nil,err
-// 	}
-// 	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
+// 	row, err = h.db.QueryRw(UpdatePocketQuery, id, NwDesBlance)
 // 	if err != nil {
-// 		logger.Error("row scan error", zap.Error(err))
-// 		return nil,err
+// 		return cp, err
 // 	}
-// 	return cp,nil
+// 	err = row.Scan(cp.ID)
+// 	if err != nil {
+// 		return cp, err
+// 	}
+// 	return cp, nil
+// }
 // }
