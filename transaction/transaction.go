@@ -40,11 +40,12 @@ func New(cfgFlag config.FeatureFlag, db *sql.DB) *handler {
 }
 
 const (
-	cStmt = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime,status FROM transaction WHERE id=$1;",
-	CreateQuery="INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description, status) VALUES($1,$2, $3,$4,$5,$6);
-	",
-	FindPocketQuery="SELECT id, \"name\", category, currency, balance
-	FROM public.cloud_pockets where id=$1;"
+	cStmt = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime,status FROM transaction WHERE id=$1;"
+	// ,
+	// CreateQuery="INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description, status) VALUES($1,$2, $3,$4,$5,$6);
+	// ",
+	// FindPocketQuery="SELECT id, \"name\", category, currency, balance
+	// FROM public.cloud_pockets where id=$1;"
 )
 
 func (h handler) GetTransactionbyAccountid(c echo.Context) error {
@@ -74,68 +75,68 @@ func (h handler) GetTransactionbyAccountid(c echo.Context) error {
 	return c.JSON(http.StatusOK, tn)
 }
 
-func (h handler) CreateTransaction(c echo.Context) error {
-	logger := mlog.L(c)
-	ctx := c.Request().Context()
-	var tn Transaction
-	err := c.Bind(&tn)
-	if err != nil {
-		logger.Error("bad request body", zap.Error(err))
-		return echo.NewHTTPError(http.StatusBadRequest, "bad request body", err.Error())
-	}
-	SoucrePocket,err:=FindidCloudPocket(h,tn.Soucre_Cloud_Pocket_ID)
-    if err !=nil{
-		logger.Error("SoucrePocket not Found", zap.Error(err))
-		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
-	}
-	DestinationPocket:=FindidCloudPocket(h,tn.Destination_Cloud_Pocket_ID)
-	if err !=nil{
-		logger.Error("DestinationPocket not Found", zap.Error(err))
-		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
-	}
-	if SoucrePocket.balance<tn.amount{
-		logger.Error("SoucrePocket balance  not Enough", zap.Error(err))
-		return echo.NewHTTPError(StatusBadRequest"SoucrePocket balance  not Enough", err.Error())
-	}
+// func (h handler) CreateTransaction(c echo.Context) error {
+// 	logger := mlog.L(c)
+// 	ctx := c.Request().Context()
+// 	var tn Transaction
+// 	err := c.Bind(&tn)
+// 	if err != nil {
+// 		logger.Error("bad request body", zap.Error(err))
+// 		return echo.NewHTTPError(http.StatusBadRequest, "bad request body", err.Error())
+// 	}
+// 	SoucrePocket,err:=FindidCloudPocket(h,tn.Soucre_Cloud_Pocket_ID)
+//     if err !=nil{
+// 		logger.Error("SoucrePocket not Found", zap.Error(err))
+// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
+// 	}
+// 	DestinationPocket:=FindidCloudPocket(h,tn.Destination_Cloud_Pocket_ID)
+// 	if err !=nil{
+// 		logger.Error("DestinationPocket not Found", zap.Error(err))
+// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket not Found", err.Error())
+// 	}
+// 	if SoucrePocket.balance<tn.amount{
+// 		logger.Error("SoucrePocket balance  not Enough", zap.Error(err))
+// 		return echo.NewHTTPError(StatusBadRequest"SoucrePocket balance  not Enough", err.Error())
+// 	}
 
-	var lastInsertId int64
-	err = h.db.QueryRowContext(ctx, cStmt, ac.Balance).Scan(&lastInsertId)
-	if err != nil {
-		logger.Error("query row error", zap.Error(err))
-		return err
-	}
+// 	var lastInsertId int64
+// 	err = h.db.QueryRowContext(ctx, cStmt, ac.Balance).Scan(&lastInsertId)
+// 	if err != nil {
+// 		logger.Error("query row error", zap.Error(err))
+// 		return err
+// 	}
 
-	logger.Info("create successfully", zap.Int64("id", lastInsertId))
-	ac.ID = lastInsertId
-	return c.JSON(http.StatusCreated, ac)
-}
-func FindidCloudPocket(h handler,int64 id) (CloudPocket,error){
-	var lastInsertId int64
-	cp:=CloudPocket{}
-	row,err = h.db.Query(FindPocketQuery,id)
-	if err != nil {
-		logger.Error("query row error", zap.Error(err))
-		return  nil,err
-	}
-	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
-	if err != nil {
-		logger.Error("row scan error", zap.Error(err))
-		return nil,err
-	}
-	return cp,nil
-}
-func UpdateCloudPocket(h handler,int64 id) (CloudPocket,error){
-	var lastInsertId int64
-	cp:=CloudPocket{}
-	row,err = h.db.Query(FindPocketQuery,id)
-	if err != nil {
-		logger.Error("query row error", zap.Error(err))
-		return  nil,err
-	}
-	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
-	if err != nil {
-		logger.Error("row scan error", zap.Error(err))
-		return nil,err
-	}
-	return cp,nil
-}
+// 	logger.Info("create successfully", zap.Int64("id", lastInsertId))
+// 	ac.ID = lastInsertId
+// 	return c.JSON(http.StatusCreated, ac)
+// }
+// func FindidCloudPocket(h handler,int64 id) (CloudPocket,error){
+// 	var lastInsertId int64
+// 	cp:=CloudPocket{}
+// 	row,err = h.db.Query(FindPocketQuery,id)
+// 	if err != nil {
+// 		logger.Error("query row error", zap.Error(err))
+// 		return  nil,err
+// 	}
+// 	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
+// 	if err != nil {
+// 		logger.Error("row scan error", zap.Error(err))
+// 		return nil,err
+// 	}
+// 	return cp,nil
+// }
+// func UpdateCloudPocket(h handler,int64 id) (CloudPocket,error){
+// 	var lastInsertId int64
+// 	cp:=CloudPocket{}
+// 	row,err = h.db.Query(FindPocketQuery,id)
+// 	if err != nil {
+// 		logger.Error("query row error", zap.Error(err))
+// 		return  nil,err
+// 	}
+// 	err=row.Scan($cp.ID,$cp.Name,$cp.Category,$cp.Currency,$cp.Balance)
+// 	if err != nil {
+// 		logger.Error("row scan error", zap.Error(err))
+// 		return nil,err
+// 	}
+// 	return cp,nil
+// }
