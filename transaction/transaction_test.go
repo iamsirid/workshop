@@ -13,6 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Newtest(db *sql.DB) *handler {
+	return &handler{db}
+}
 func TestTransactionbyAccountID(t *testing.T) {
 	//Arrange
 	req := httptest.NewRequest(http.MethodGet, "/cloud-pockets/1/transactions", strings.NewReader(""))
@@ -27,12 +30,12 @@ func TestTransactionbyAccountID(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	h := New(db)
+	h := Newtest(db)
 	c := echo.New().NewContext(req, rec)
 	expected := "[{\"id\":1,\"source_cloud_pocket_id\":\"100\",\"destination_cloud_pocket_id\":\"102\",\"description\":\"101 to 102\",\"datetime\":\"2022-01-01 00:00:00\",\"status\":Success}]"
 
 	//Act
-	err = h.GetAllCloudPocket(c)
+	err = h.GetTransactionbyAccountid(c)
 	//Arrange
 	if assert.NoError(t, err) {
 		assert.Equal(t, http.StatusOK, rec.Code)
