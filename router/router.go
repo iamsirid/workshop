@@ -46,6 +46,7 @@ func RegRoute(cfg config.Config, logger *zap.Logger, db *sql.DB) *echo.Echo {
 	e.GET("/cloud-pockets", hCloudPocket.GetAllCloudPocket)
 	e.GET("/cloud-pockets/:id", hCloudPocket.GetCloudPocketById)
 	e.DELETE("/cloud-pockets/:id", hCloudPocket.DeleteCloudPocket)
+	e.POST("/cloud-pockets/transfer",hTransaction.CreateTransaction)
 
 	return e
 }
