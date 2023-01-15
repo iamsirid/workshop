@@ -28,8 +28,7 @@ func TestCreatePocket(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-	mock.ExpectQuery("INSERT INTO cloud_pockets").
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectPrepare("INSERT INTO").ExpectQuery().WithArgs().WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	hCloudPocket := New(db)
 
 	if assert.NoError(t, hCloudPocket.CreateCloudPocket(c)) {
