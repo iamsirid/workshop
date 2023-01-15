@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreatePocketIT(t *testing.T) {
-	body := `{"name":"test-pocket", "currency":"THB", "balance":100.00}`
+	body := `{"pocketName":"test-pocket", "currency":"THB", "balance":100.00}`
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/cloud-pockets", strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -36,9 +36,9 @@ func TestCreatePocketIT(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rec.Code)
 		var response map[string]interface{}
 		json.Unmarshal(rec.Body.Bytes(), &response)
-		assert.Equal(t, "test-pocket", response["name"])
+		assert.Equal(t, "test-pocket", response["pocketName"])
 		assert.Equal(t, "THB", response["currency"])
 		assert.Equal(t, 100.0, response["balance"])
-		assert.NotEmpty(t, response["id"])
+		assert.NotEmpty(t, response["pocketID"])
 	}
 }
