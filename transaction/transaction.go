@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"fmt"
 	// "math/big"
 	"github.com/kkgo-software-engineering/workshop/mlog"
 	"github.com/labstack/echo/v4"
@@ -101,7 +100,6 @@ func (h handler) CreateTransaction(c echo.Context) error {
 		logger.Error("UpdateCloudPocket error", zap.Error(err))
 		return echo.NewHTTPError(http.StatusBadRequest, "UpdateCloudPocket error", err.Error())
 	}
-    fmt.Println("%s",DestinationPocket)
 	var lastInsertId int64
 	tn.Date = time.Now()
 	err = h.db.QueryRowContext(ctx, InsertTransationQuery, tn.Soucre_Cloud_Pocket_ID, tn.Destination_Cloud_Pocket_ID, tn.Amount, tn.Date, tn.Description).Scan(&lastInsertId)
