@@ -15,17 +15,17 @@ func (h handler) CreateCloudPocket(c echo.Context) error {
 
 	row := h.db.QueryRow(
 		`INSERT INTO `+tableName+` (name, category, currency, balance) VALUES ($1, $2, $3, $4) RETURNING id`,
-		cloudPocket.Name, cloudPocket.Category, cloudPocket.Currency, cloudPocket.Balance,
+		cloudPocket.PocketName, cloudPocket.Category, cloudPocket.Currency, cloudPocket.Balance,
 	)
-	err := row.Scan(&cloudPocket.ID)
+	err := row.Scan(&cloudPocket.PocketID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusCreated, CloudPocket{
-		ID:       cloudPocket.ID,
-		Name:     cloudPocket.Name,
-		Category: cloudPocket.Category,
-		Currency: cloudPocket.Currency,
-		Balance:  cloudPocket.Balance,
+		PocketID:   cloudPocket.PocketID,
+		PocketName: cloudPocket.PocketName,
+		Category:   cloudPocket.Category,
+		Currency:   cloudPocket.Currency,
+		Balance:    cloudPocket.Balance,
 	})
 }

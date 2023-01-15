@@ -2,7 +2,7 @@ package cloud_pockets
 
 import "database/sql"
 
-type CloudPocket struct {
+type CreatePocket struct {
 	ID       int     `json:"id"`
 	Name     string  `json:"name"`
 	Category string  `json:"category"`
