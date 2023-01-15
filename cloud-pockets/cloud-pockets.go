@@ -2,12 +2,12 @@ package cloud_pockets
 
 import "database/sql"
 
-type CreatePocket struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Category string  `json:"category"`
-	Currency string  `json:"currency"`
-	Balance  float64 `json:"balance"`
+type CloudPocket struct {
+	PocketID   int     `json:"pocketID"`
+	PocketName string  `json:"pocketName"`
+	Category   string  `json:"category"`
+	Currency   string  `json:"currency"`
+	Balance    float64 `json:"balance"`
 }
 
 type handler struct {

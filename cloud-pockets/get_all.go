@@ -6,15 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type CloudPocket struct {
-	PocketID   int     `json:"pocketID"`
-	PocketName string  `json:"pocketName"`
-	Category   string  `json:"category"`
-	Currency   string  `json:"currency"`
-	Balance    float64 `json:"balance"`
-	// AccountID  int     `json:"accountID"`
-}
-
 func (h handler) GetAllCloudPocket(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 	stmt, err := h.db.Prepare("SELECT id, name, category, currency, balance FROM cloud_pockets")
