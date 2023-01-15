@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
 	// "math/big"
 	"github.com/kkgo-software-engineering/workshop/mlog"
 	"github.com/labstack/echo/v4"
+
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -28,20 +31,19 @@ type CloudPocket struct {
 	Balance  float64 `json:"balance"`
 }
 
-
 type handler struct {
-	db  *sql.DB
+	db *sql.DB
 }
-
 
 func New(db *sql.DB) *handler {
 	return &handler{db}
 }
+
 const (
-	cStmt             = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime FROM transaction WHERE id=$1;"
-	CreateQuery       = "INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description) VALUES($1,$2, $3,$4,$5);"
-	FindPocketQuery   = "SELECT id, name, category, currency, balance FROM cloud_pockets WHERE id = $1;"
-	UpdatePocketQuery = "UPDATE public.cloud_pockets	SET balance=$2 WHERE id=$1 RETURNING id;"
+	cStmt                 = "SELECT id,source_cloud_pocket_id,destination_cloud_pocket_id,amount,description,datetime FROM transaction WHERE id=$1;"
+	CreateQuery           = "INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime, description) VALUES($1,$2, $3,$4,$5);"
+	FindPocketQuery       = "SELECT id, name, category, currency, balance FROM cloud_pockets WHERE id = $1;"
+	UpdatePocketQuery     = "UPDATE public.cloud_pockets	SET balance=$2 WHERE id=$1 RETURNING id;"
 	InsertTransationQuery = "INSERT INTO transaction (source_cloud_pocket_id, destination_cloud_pocket_id, amount, datetime,description) VALUES($1,$2,$3,$4,$5) RETURNING id;"
 )
 
@@ -95,7 +97,7 @@ func (h handler) CreateTransaction(c echo.Context) error {
 		logger.Error("Your wallet has insufficient funds for this transaction", zap.Error(err))
 		return echo.NewHTTPError(http.StatusBadRequest, "SoucrePocket balance  not Enough", err.Error())
 	}
-	err=UpdateCloudPocket(h,SoucrePocket,DestinationPocket,tn.Amount)
+	err = UpdateCloudPocket(h, SoucrePocket, DestinationPocket, tn.Amount)
 	if err != nil {
 		logger.Error("UpdateCloudPocket error", zap.Error(err))
 		return echo.NewHTTPError(http.StatusBadRequest, "UpdateCloudPocket error", err.Error())
@@ -121,19 +123,26 @@ func FindidCloudPocket(h handler, ID int64) (CloudPocket, error) {
 	}
 	return cp, nil
 }
-func UpdateCloudPocket(h handler,Soucre CloudPocket,Des CloudPocket,balance float64) ( error) {
+func UpdateCloudPocket(h handler, Soucre CloudPocket, Des CloudPocket, balance float64) error {
 	cp := CloudPocket{}
-	NewSocureBlance := Soucre.Balance - balance
-	NewDesBlance := Des.Balance + balance
-	rowSrc := h.db.QueryRow(UpdatePocketQuery, Soucre.ID,NewSocureBlance)
-	rowDesc := h.db.QueryRow(UpdatePocketQuery,Des.ID,NewDesBlance)
-	errSrc  := rowSrc.Scan(&cp.ID)
+
+	sourceBalance := decimal.NewFromFloat(Soucre.Balance)
+	destinationBalance := decimal.NewFromFloat(Des.Balance)
+
+	nBalance := decimal.NewFromFloat(balance)
+
+	NewSocureBlance, _ := sourceBalance.Sub(nBalance).Float64()
+	NewDesBlance, _ := destinationBalance.Add(nBalance).Float64()
+
+	rowSrc := h.db.QueryRow(UpdatePocketQuery, Soucre.ID, NewSocureBlance)
+	rowDesc := h.db.QueryRow(UpdatePocketQuery, Des.ID, NewDesBlance)
+	errSrc := rowSrc.Scan(&cp.ID)
 	if errSrc != nil {
-		return  errSrc
+		return errSrc
 	}
 	errDesc := rowDesc.Scan(&cp.ID)
 	if errDesc != nil {
-		return  errDesc
+		return errDesc
 	}
-	return  nil
+	return nil
 }
